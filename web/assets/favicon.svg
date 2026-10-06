@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- 云笺：朱砂方章 + 墨色「笺」 -->
+  <rect width="32" height="32" rx="4" fill="#9e3b32"/>
+  <rect x="2" y="2" width="28" height="28" rx="2.5" fill="none"
+        stroke="#f4efe3" stroke-opacity="0.28" stroke-width="1"/>
+  <text x="16" y="23" text-anchor="middle"
+        font-family="Songti SC, STSong, Noto Serif SC, serif"
+        font-size="21" font-weight="600" fill="#faf7ef">笺</text>
+</svg>

@@ -1,0 +1,456 @@
+/* ==========================================================================
+ * 组件层：统计卡、表格、分页、图表容器、弹层、文档排版
+ * ========================================================================== */
+
+/* --------------------------------------------------------------- 统计卡 --- */
+
+.stat {
+  position: relative;
+  padding: var(--s-4) var(--s-5);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+/* 卡片的左侧色条：与图表系列色一一对应 */
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent, var(--cinnabar));
+}
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+.stat-value {
+  margin-top: var(--s-2);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.stat-unit {
+  margin-left: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+.stat-meta {
+  margin-top: var(--s-2);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.stat-spark { margin-top: var(--s-3); height: 30px; }
+
+/* --------------------------------------------------------------- 表格 --- */
+
+.table-wrap { width: 100%; overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--s-3) var(--s-4);
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  background: var(--paper-sunken);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--rule-hairline);
+  vertical-align: middle;
+}
+.table tbody tr { transition: background var(--transition); }
+.table tbody tr:hover { background: var(--paper-sunken); }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .col-actions { text-align: right; white-space: nowrap; }
+
+/* --------------------------------------------------------------- 分页 --- */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--rule);
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+.pager-buttons { display: flex; align-items: center; gap: var(--s-2); }
+.pager-page { font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------- 图表 --- */
+
+.chart { width: 100%; display: block; overflow: visible; }
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-3);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.chart-legend-item { display: inline-flex; align-items: center; gap: var(--s-2); }
+.chart-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.chart-swatch-line { width: 14px; height: 3px; border-radius: var(--r-pill); }
+
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.donut-wrap { display: flex; align-items: center; gap: var(--s-6); flex-wrap: wrap; }
+
+/* --------------------------------------------------------- 图表悬停提示 --- */
+/*
+ * 纯 CSS 显隐，**不监听 mousemove**：charts.js 的硬约定是「纯函数，数据进 SVG 字符串出」，
+ * 一旦引入运行时 DOM 交互，坐标缩放 / 空数据降级 / 除零保护这些最容易错的地方就没法在
+ * node 里单测了（tests/js/charts.test.mjs 有 60+ 项依赖这一点）。
+ *
+ * ``opacity`` + ``visibility`` 而不是 display：opacity 可过渡，display 不能；
+ * visibility 让隐藏时盒子不接收鼠标事件，于是「移出提示框」不会卡住不消失。
+ */
+.hv { cursor: crosshair; }
+.hv-tip {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 90ms ease-out;
+}
+.hv:hover .hv-tip,
+.hv:focus-visible .hv-tip,
+.hv:focus .hv-tip {
+  opacity: 1;
+  visibility: visible;
+}
+/* 参考线跟着一起显影 —— 线与提示框必须同时出现，只出一个会显得像渲染错位 */
+.hv-guide {
+  stroke: var(--tip-guide);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  transition: opacity 90ms ease-out;
+}
+.hv:hover .hv-guide,
+.hv:focus-visible .hv-guide,
+.hv:focus .hv-guide { opacity: 1; }
+
+/* 环形图的扇形：命中区就是那圈描边，圆环内部空洞不该触发 */
+.hv-donut:hover .hv-tip,
+.hv-donut:focus-visible .hv-tip,
+.hv-donut:focus .hv-tip { opacity: 1; visibility: visible; }
+.hv-donut { cursor: pointer; }
+
+/* 键盘可达：命中矩形是 fill="transparent"，没有可见边框的话键盘用户完全看不出
+   焦点落在哪一列。用 stroke 而不是 outline —— outline 在 SVG 子元素上的支持
+   不一致（Chrome 与 Firefox 表现不同），stroke 是 SVG 里唯一可靠的焦点样式。 */
+.hv .hv-hit:focus-visible {
+  stroke: var(--cinnabar);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 前庭敏感用户：去掉淡入 animation，保留显隐本身（去掉就没提示了） */
+  .hv-tip, .hv-guide { transition: none; }
+}
+.donut-center-label { font-size: 11px; fill: var(--ink-muted); }
+.donut-center-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+/* --------------------------------------------------------------- 弹层 --- */
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  background: rgba(20, 17, 14, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition), visibility var(--transition);
+}
+.modal-scrim.is-open { opacity: 1; visibility: visible; }
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--paper-overlay);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(8px);
+  transition: transform var(--transition);
+}
+.modal-scrim.is-open .modal { transform: translateY(0); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+}
+.modal-title { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.05em; }
+.modal-body { padding: var(--s-5); }
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+
+/* 明文密钥一次性展示框 */
+.secret-box {
+  margin: var(--s-3) 0;
+  padding: var(--s-4);
+  border: 1px dashed var(--cinnabar);
+  border-radius: var(--r-md);
+  background: var(--cinnabar-soft);
+}
+.secret-value {
+  display: block;
+  margin: var(--s-2) 0;
+  padding: var(--s-2) var(--s-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  word-break: break-all;
+  user-select: all;
+}
+
+/* --------------------------------------------------------------- 吐司 --- */
+
+.toasts {
+  position: fixed;
+  right: var(--s-5);
+  bottom: var(--s-5);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  pointer-events: none;
+}
+.toast {
+  min-width: 220px;
+  max-width: 380px;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--info);
+  background: var(--paper-overlay);
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  pointer-events: auto;
+  animation: toast-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.toast-ok { border-left-color: var(--ok); }
+.toast-danger { border-left-color: var(--danger); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --------------------------------------------------------------- 文档 --- */
+
+.doc { max-width: 74ch; }
+.doc h2 {
+  margin: var(--s-8) 0 var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+.doc h2:first-child { margin-top: 0; }
+.doc h3 { margin: var(--s-5) 0 var(--s-2); font-size: 15px; }
+.doc ul, .doc ol { margin: 0 0 var(--s-3); padding-left: var(--s-6); }
+.doc li { margin-bottom: var(--s-1); }
+.doc li::marker { color: var(--ink-faint); }
+
+/* 步骤：古风的「一、二、三」 */
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps > li {
+  position: relative;
+  padding-left: var(--s-8);
+  margin-bottom: var(--s-4);
+  counter-increment: step;
+}
+.steps > li::before {
+  content: counter(step, cjk-ideographic);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  background: var(--cinnabar-soft);
+  color: var(--cinnabar);
+  font-family: var(--font-display);
+  font-size: 12px;
+}
+
+.endpoint {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--paper-raised);
+  margin-bottom: var(--s-2);
+  flex-wrap: wrap;
+}
+.endpoint-method {
+  padding: 1px var(--s-2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--indigo-soft);
+  color: var(--indigo);
+  flex-shrink: 0;
+}
+.endpoint-path { font-family: var(--font-mono); font-size: 13px; }
+
+/* --------------------------------------------------------- 模型清单 --- */
+
+.model-grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); }
+.model-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  background: var(--paper-raised);
+  box-shadow: var(--shadow-sm);
+}
+.model-name { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.04em; }
+.model-id {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-muted);
+  word-break: break-all;
+}
+/* 上下文 / 输出上限那一行。
+   **不用 space-between**：那会把标签和数值推到卡片左右两端，于是「上下文上限 200K」
+   中间空出一大片（截图里最扎眼的就是 Big Pickle 那张）。
+
+   两个必须同时做到的点（都是实测踩出来的）：
+   1. ``.model-caps`` 必须**关掉** ``.kv`` 继承来的 ``grid-template-columns: auto 1fr``。
+      否则每个 ``<div>`` 只落进 ``auto`` 那列、宽度塌成内容宽（实测 97px），
+      ``margin-left: auto`` 就无处可推 —— 数值仍停在标签右边。
+   2. 用 ``margin-left: auto`` 而不是 ``text-align: right`` + grid 列宽：
+      前者不依赖列宽计算，``200K`` 与 ``131.1K`` 宽度不同也能右边缘对齐。 */
+.model-caps {
+  margin-top: var(--s-3);
+  font-size: 12px;
+  grid-template-columns: 1fr;  /* 覆盖 .kv 的 auto 1fr —— 每个 div 占满整行 */
+}
+.model-caps > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 2px 0;
+}
+.model-caps dt { color: var(--ink-muted); margin: 0; white-space: nowrap; }
+/* 选择器要比 base.css 的 `.kv > dd { margin: 0 }` 更具体：那条是 (0,1,1)，
+   写 `.model-caps dd` 同权重会输给它（base.css 先加载）。加 > div 变(0,2,1)。 */
+.model-caps > div > dd {
+  margin: 0 0 0 auto;  /* 关键：把数值推到行末 */
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;  /* 等宽数字：位数变化时列不跳 */
+}
+/* 「走 opencode / 直通」那一行。
+   放在 ``.model-stats`` **之前**并让它 ``margin-top: auto`` —— 于是无论上面
+   的规格有几行，这一行与底部统计条都贴着卡片底边，整排卡片的高度也对齐。 */
+.model-route {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: auto;
+  padding-top: var(--s-3);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.model-route-text { white-space: nowrap; }
+/* 开关本体在这行里要缩一号：``.switch`` 默认 42px 宽，在卡片里太大，
+   而这一行只有「开关 + 三个字」的空间。 */
+.model-route .switch { transform: scale(0.82); transform-origin: left center; }
+
+.model-stats {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: auto;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule-hairline);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.model-stats b { display: block; font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--ink-faint);
+}
+.dot-ok { background: var(--ok); }
+.dot-bad { background: var(--danger); }
+.dot-unknown { background: var(--ink-faint); }
+
+/* --------------------------------------------------------- 渠道状态 --- */
+
+.gauge {
+  position: relative;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--paper-sunken);
+  overflow: hidden;
+}
+.gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--r-pill);
+  background: var(--accent, var(--celadon));
+  transition: width var(--transition);
+}

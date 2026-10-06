@@ -1,0 +1,241 @@
+/* ==========================================================================
+ * 布局层：侧边栏、顶栏、内容区、抽屉
+ *
+ * 古风的版式依据是「卷轴」：左侧竖排目录（本站做成横排，因为屏幕是横的），
+ * 右侧正文。分隔用双线而非阴影，取「界栏」的意味。
+ * ========================================================================== */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* ------------------------------------------------------------- 侧边栏 --- */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-w);
+  background: var(--paper-sunken);
+  border-right: 1px solid var(--rule);
+  transition: transform var(--transition), width var(--transition);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: var(--header-h);
+  padding: 0 var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.brand-text { min-width: 0; overflow: hidden; }
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--s-4) var(--s-3);
+}
+
+/* 分节标题：像书稿的卷次 */
+.nav-section + .nav-section { margin-top: var(--s-5); }
+.nav-section-label {
+  padding: 0 var(--s-3);
+  margin-bottom: var(--s-2);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  margin-bottom: 2px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition), color var(--transition);
+}
+.nav-link:hover { background: var(--paper-raised); color: var(--ink); }
+.nav-link.is-active {
+  background: var(--paper-raised);
+  color: var(--cinnabar);
+  font-weight: 600;
+}
+/* 选中态左侧一道朱笔竖线 */
+.nav-link.is-active::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: var(--r-pill);
+  background: var(--cinnabar);
+}
+.nav-icon { width: 17px; height: 17px; flex-shrink: 0; }
+.nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-badge {
+  margin-left: auto;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--cinnabar-soft);
+  color: var(--cinnabar);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sidebar-foot {
+  flex-shrink: 0;
+  padding: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+
+/* 折叠态：只留图标 */
+.shell.is-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+.shell.is-collapsed .brand-text,
+.shell.is-collapsed .nav-label,
+.shell.is-collapsed .nav-section-label,
+.shell.is-collapsed .nav-badge,
+.shell.is-collapsed .foot-label { display: none; }
+.shell.is-collapsed .sidebar-brand { justify-content: center; padding: 0; }
+.shell.is-collapsed .nav-link { justify-content: center; padding: var(--s-2) 0; }
+.shell.is-collapsed .nav-link.is-active::before { left: -1px; }
+
+/* --------------------------------------------------------------- 顶栏 --- */
+
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left var(--transition);
+}
+.shell.is-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: var(--header-h);
+  padding: 0 var(--s-6);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+
+.header-text { min-width: 0; }
+.header-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+.header-sub { font-size: 12px; color: var(--ink-muted); }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+
+/* 顶栏印章：显示当前鉴权模式，是中转站最要紧的一个状态 */
+.mode-seal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 3px var(--s-3);
+  border-radius: var(--r-sm);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  border: 1px solid currentColor;
+}
+.mode-open { color: var(--cinnabar); background: var(--cinnabar-soft); }
+.mode-locked { color: var(--indigo); background: var(--indigo-soft); }
+
+/* --------------------------------------------------------------- 内容 --- */
+
+.content {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--s-6);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-5);
+}
+.page-heading { font-size: 20px; letter-spacing: 0.08em; }
+.page-lede { margin-top: 2px; font-size: 13px; color: var(--ink-muted); max-width: 62ch; }
+
+/* ------------------------------------------------------------- 抽屉 --- */
+
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(20, 17, 14, 0.42);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition), visibility var(--transition);
+}
+.drawer-scrim.is-open { opacity: 1; visibility: visible; }
+
+@media (max-width: 760px) {
+  .sidebar { transform: translateX(-100%); }
+  .shell.drawer-open .sidebar { transform: translateX(0); }
+  .main, .shell.is-collapsed .main { margin-left: 0; }
+  .content { padding: var(--s-4); }
+  .header { padding: 0 var(--s-4); }
+  /* 窄屏下折叠无意义，强制展开态显示 */
+  .shell.is-collapsed .brand-text,
+  .shell.is-collapsed .nav-label,
+  .shell.is-collapsed .nav-section-label { display: revert; }
+  .shell.is-collapsed .nav-link { justify-content: flex-start; padding: var(--s-2) var(--s-3); }
+}

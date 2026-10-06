@@ -1,0 +1,118 @@
+[project]
+name = "openproxy"
+version = "1.0.0"
+description = "转发到 opencode 免费模型的中转站，带用量统计与中式古风控制台"
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+dependencies = [
+    # 上界是刻意钉的，不是「还没试过新版」：
+    # starlette >= 1.0 把 TestClient 迁到了 httpx2，而本项目出站与测试夹具都用
+    # httpx。两套并存会让测试跑在一条与生产不同的 HTTP 栈上（R17 的前提就没了）。
+    "fastapi>=0.119,<0.122",
+    "starlette>=0.40,<0.50",
+    "httpx>=0.27,<0.29",
+    "uvicorn>=0.30",
+]
+
+[project.scripts]
+openproxy = "openproxy.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.11",
+    "ruff>=0.6",
+    "pytest-asyncio>=1.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openproxy"]
+
+# ---------------------------------------------------------------- pytest ---
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers --strict-config"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "network: hits the real upstream; deselect with '-m \"not network\"'",
+    "js: driven by the node test runner (tests/js)",
+]
+# 告警一律当错误。唯一一条例外是 **anyio 自己的**别名弃用：starlette 0.49 的
+# TestClient 在 conftest import 期就触碰 `anyio.abc.BlockingPortal`，而我们无法在
+# 不升级到 starlette 1.x（会把 TestClient 迁到 httpx2）的前提下修掉它。
+#
+# 必须带 `module=starlette.*`：告警的 stacklevel 指向**调用方**（starlette 的
+# testclient），不是发出方（anyio）。不带 module 的话，本项目将来若产生同一条
+# 文案的告警也会被一起吞掉 —— 那等于永久放弃这条防线。
+filterwarnings = [
+    "error",
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning:starlette.*",
+]
+
+# ------------------------------------------------------------------- ruff ---
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = ["web", ".venv", "data"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "A",         # builtin shadowing
+    "C4",        # comprehensions
+    "SIM",       # simplify
+    "RET",       # return
+    "PTH",       # pathlib
+    "TID",       # tidy imports
+    "ARG",       # unused arguments
+    "PL",        # pylint subset
+    "RUF",
+]
+ignore = [
+    "PLR0913",  # too many arguments — deliberate for service constructors
+    "PLR0917",  # too many positional arguments — FastAPI 路由的查询参数天然很多
+    "PLR2004",  # magic value comparison — statuses and byte counts are clearer inline
+    "N818",     # ProxyRejection 刻意不带 Error 后缀：它同时是 HTTP 拒绝与领域事件
+    # 本项目的中文注释/文档串里必然出现全角标点，它们不是「易混淆字符」：
+    # 用户读到的每一个字都是中文，RUF001/2/3 在这里只会产出 400 条无意义告警。
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI 的 Depends()/Body() 写在默认参数上是官方用法，B008 在这里是误报
+"src/openproxy/api/deps.py" = ["B008"]
+"src/openproxy/api/routes_admin.py" = ["B008"]
+# PLC0415: 测试里的局部导入是刻意的 —— 有些用例只需要另一个测试模块里的
+#          `_app()` 工厂，放到顶层会让两个文件互相 import，收集顺序一变就炸。
+# ARG001/ARG002: fixture 参数在部分用例里确实用不到，但删掉签名更难看。
+"tests/*" = ["ARG001", "ARG002", "PLR0915", "S101", "PLC0415"]
+
+# ------------------------------------------------------------------- mypy ---
+[tool.mypy]
+python_version = "3.12"          # R02: exact X.Y, matches .python-version
+files = ["src", "tests"]
+strict = true
+warn_unreachable = true
+show_error_codes = true
+pretty = true
+exclude = ["^web/", "^data/", "^\\.venv/"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false

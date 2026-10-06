@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>总览 · 云笺中转站</title>
+  <meta name="description" content="转发到 opencode 免费模型的中转站，带用量统计">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <div class="shell" id="shell">
+    <!-- ------------------------------------------------ 侧边栏：卷首的目录 -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="seal brand-mark" aria-hidden="true">笺</div>
+        <div class="brand-text">
+          <div class="brand-name">云笺中转</div>
+          <div class="brand-sub">opencode 免费模型</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="主导航">
+        <div id="navList"></div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <button class="nav-link" type="button" id="btnToken" style="margin-bottom:2px">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="10" rx="1.5"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          <span class="nav-label">管理令牌</span>
+        </button>
+        <button class="nav-link" type="button" id="btnTheme">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.7-5.7 1.4-1.4M4.9 19.1l1.4-1.4m0-11.4L4.9 4.9m14.2 14.2-1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/>
+          </svg>
+          <span class="foot-label">夜间</span>
+        </button>
+        <button class="nav-link" type="button" id="btnCollapse">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 5-7 7 7 7m-6-14-7 7 7 7"/>
+          </svg>
+          <span class="foot-label">收起目录</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="drawer-scrim" id="drawerScrim"></div>
+
+    <!-- -------------------------------------------------------- 正文 -->
+    <div class="main">
+      <header class="header">
+        <button class="btn btn-ghost btn-icon" type="button" id="btnMenu" aria-label="目录">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
+        </button>
+
+        <div class="header-text">
+          <div class="header-title" id="pageTitle">总览</div>
+          <div class="header-sub" id="pageSubtitle"></div>
+        </div>
+
+        <div class="header-actions">
+          <span class="nav-badge hidden" id="navKeysBadge"
+                title="生效中的密钥数" aria-label="生效中的密钥数"></span>
+          <span id="modeSeal" title="当前鉴权模式" aria-label="当前鉴权模式"></span>
+        </div>
+      </header>
+
+      <main class="content">
+        <div id="view"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <noscript>
+    <div style="padding:40px;text-align:center;font-family:serif">
+      这个控制台需要 JavaScript。中转接口本身不需要：直接用 curl 指向
+      <code>/v1/chat/completions</code> 即可。
+    </div>
+  </noscript>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

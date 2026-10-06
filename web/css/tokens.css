@@ -1,0 +1,183 @@
+/* ==========================================================================
+ * 设计令牌 —— 「宣纸 · 墨 · 朱砂」中式古风
+ *
+ * 配色不是随手挑的，每一组都有出处：
+ *   宣纸  #f4efe3  唐代宣纸微微泛黄，页面底色
+ *   墨    #26221d  松烟墨，正文与标题
+ *   朱砂  #9e3b32  印泥红，印章、主按钮、强调数字
+ *   靛青  #2f5d7c  靛蓝，链接、次级强调、折线图主色
+ *   石青  #4a7c8c  浅一档的靛青，用于图例与 hover
+ *   藤黄  #b8873f  赭黄，警示与次要曲线
+ *   苍绿  #5c7a63  松花绿，成功态
+ *   紫檀  #6b4a5e  深紫檀，用于第三个数据系列
+ *
+ * 深色主题（「夜墨」）不是把颜色反过来，而是换成更冷的墨底 + 提亮的朱砂，
+ * 因为暗底上未提亮的朱砂会发闷、糊成一团。
+ * ========================================================================== */
+
+:root {
+  /* ---- 纸与墨（底 → 顶的四级层次） ---- */
+  --paper: #f4efe3;
+  --paper-raised: #faf7ef;
+  --paper-sunken: #ebe4d4;
+  --paper-overlay: #fffdf8;
+
+  --ink: #26221d;
+  --ink-soft: #4a443c;
+  /* --ink-muted / --ink-faint 原来分别是 4.01:1 与 2.25:1，都不到 WCAG AA 的 4.5:1，
+     而它们承载的是真实内容（表头、次要说明、图例、空态提示），不是装饰。 */
+  --ink-muted: #6b6355;   /* 5.6:1 on --paper */
+  --ink-faint: #716958;   /* 4.7:1 on --paper，5.1:1 on --paper-raised */
+
+  /* ---- 描边：双线界栏（thin + hairline） ---- */
+  --rule: #d9d0bd;
+  --rule-strong: #c2b69c;
+  --rule-hairline: rgba(38, 34, 29, 0.08);
+
+  /* ---- 五色主色 ---- */
+  --cinnabar: #9e3b32;        /* 朱砂 */
+  --cinnabar-deep: #7d2a23;
+  --cinnabar-soft: rgba(158, 59, 50, 0.1);
+  --indigo: #2f5d7c;          /* 靛青 */
+  --indigo-soft: rgba(47, 93, 124, 0.1);
+  --mineral: #43737f;         /* 石青 —— 压深到 4.9:1 */
+  --gamboge: #8f6420;         /* 藤黄 —— 压深到 4.5:1，原 #b8873f 只有 2.78:1 */
+  --gamboge-soft: rgba(184, 135, 63, 0.12);
+  --celadon: #55735d;         /* 苍绿 —— 压深到 4.9:1（原 4.44:1 不达 AA） */
+  --celadon-soft: rgba(85, 115, 93, 0.14);
+  --rosewood: #6b4a5e;        /* 紫檀 */
+
+  /* ---- 语义色 ---- */
+  --ok: var(--celadon);
+  --warn: var(--gamboge);
+  --danger: var(--cinnabar);
+  --info: var(--indigo);
+
+  --ok-bg: var(--celadon-soft);
+  --warn-bg: var(--gamboge-soft);
+  --danger-bg: var(--cinnabar-soft);
+  --info-bg: var(--indigo-soft);
+
+  /* ---- 图表系列（顺序即色序，勿随意增删） ----
+   * 前六个直接**别名**到上面的语义色，而不是各写一个十六进制值：
+   * 这样图例里的文字、轴标签、颜色块共用同一份「已验证达 AA 对比度」的取值，
+   * 不会各自漂移。（原来 8 个都是独立字面值，其中 3 个不达 4.5:1。） */
+  --sienna: #7a5c2a;        /* 赭褐 */
+  --slate: #5b5f86;         /* 黛蓝紫 */
+  --series-1: var(--cinnabar);
+  --series-2: var(--indigo);
+  --series-3: var(--gamboge);
+  --series-4: var(--mineral);
+  --series-5: var(--celadon);
+  --series-6: var(--rosewood);
+  --series-7: var(--sienna);
+  --series-8: var(--slate);
+  --grid-line: rgba(38, 34, 29, 0.1);
+  --axis-text: #6b6355;
+
+  /* ---- 图表悬停提示 ---- */
+  /* 提示框是**浮在图表之上**的一层小卡片，所以底色用 --paper-overlay（最亮那档），
+     描边用 --rule-strong 而不是 --rule —— 浮层需要比图上的网格线更明确。 */
+  --tip-bg: #fffdf8;
+  --tip-line: #c2b69c;
+  --tip-title: #26221d;
+  --tip-text: #4a443c;
+  --tip-value: #7d2a23;
+  --tip-guide: rgba(158, 59, 50, 0.35);
+  --tip-shadow: 0 4px 14px rgba(38, 34, 29, 0.18);
+
+  /* ---- 字体 ---- */
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC",
+    "SimSun", "Georgia", serif;
+  --font-body: "Songti SC", "STSong", "Noto Serif SC", "PingFang SC",
+    "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace;
+
+  /* ---- 间距（4 基数） ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* ---- 圆角：古风偏方，故一律收得很小 ---- */
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 5px;
+  --r-pill: 999px;
+
+  /* ---- 阴影：宣纸是平的，所以阴影极轻，靠描边分层 ---- */
+  --shadow-sm: 0 1px 2px rgba(38, 34, 29, 0.05);
+  --shadow-md: 0 2px 8px rgba(38, 34, 29, 0.07);
+  --shadow-lg: 0 8px 28px rgba(38, 34, 29, 0.12);
+
+  --sidebar-w: 244px;
+  --sidebar-w-collapsed: 68px;
+  --header-h: 60px;
+  --content-max: 1480px;
+
+  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------------------------------------------------------------- 夜墨 --- */
+
+[data-theme="dark"] {
+  --paper: #1c1a17;
+  --paper-raised: #24211d;
+  --paper-sunken: #161411;
+  --paper-overlay: #2b2722;
+
+  --ink: #ece5d8;
+  --ink-soft: #c3bbab;
+  /* 夜间主题下这两个值原本是 4.3:1 与 2.74:1，同样不达标。 */
+  --ink-muted: #a89f8e;   /* 6.2:1 on --paper */
+  --ink-faint: #948b7a;   /* 4.8:1 on --paper */
+
+  --rule: #3a352d;
+  --rule-strong: #4d463b;
+  --rule-hairline: rgba(236, 229, 216, 0.08);
+
+  /* 暗底上必须提亮，否则朱砂会糊成一团暗红 */
+  --cinnabar: #d86f65;       /* 暗底上原本 4.47:1，提亮到 4.9:1 */
+  --cinnabar-deep: #e08a82;
+  --cinnabar-soft: rgba(212, 102, 92, 0.16);
+  --indigo: #6fa8cc;
+  --indigo-soft: rgba(111, 168, 204, 0.16);
+  --mineral: #79b0c0;
+  --gamboge: #e3b972;   /* 夜间：提亮到 4.5:1 */
+  --gamboge-soft: rgba(213, 168, 98, 0.16);
+  --celadon: #8bb398;
+  --celadon-soft: rgba(139, 179, 152, 0.16);
+  --rosewood: #b189a3;
+
+  --sienna: #d3a878;
+  --slate: #9ea3cc;
+  --series-1: var(--cinnabar);
+  --series-2: var(--indigo);
+  --series-3: var(--gamboge);
+  --series-4: var(--mineral);
+  --series-5: var(--celadon);
+  --series-6: var(--rosewood);
+  --series-7: var(--sienna);
+  --series-8: var(--slate);
+
+  --grid-line: rgba(236, 229, 216, 0.1);
+  --axis-text: #a89f8e;
+
+  /* 深色下的提示框：底色不能纯黑（会像挖了个洞），用比--paper-overlay 更沉一档的墨色 */
+  --tip-bg: #2b2721;
+  --tip-line: #554d40;
+  --tip-title: #f0e9da;
+  --tip-text: #cfc6b4;
+  --tip-value: #e8a49b;
+  --tip-guide: rgba(232, 164, 155, 0.4);
+  --tip-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
